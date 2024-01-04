@@ -19,7 +19,6 @@ export default DetailNotes;
 export async function getStaticPaths() {
   const res = await fetch("http://localhost:3000/api/notes/");
   const notes = await res.json();
-  console.log(notes)
 
   const paths = notes.data.map((item) => ({
     params: {

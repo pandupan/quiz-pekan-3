@@ -9,7 +9,6 @@ import { Spinner } from '@chakra-ui/react'
 import fetcher from "../../utils/fetcher"
 import useSWR from "swr";
 
-const LayoutComponent = dynamic(() => import("@/Layout"));
 
 export default function Notes() {
   const { data, isError, isLoading } = useSWR('http://localhost:3000/api/notes/', fetcher, {revalidateOnFocus: true})
@@ -68,7 +67,6 @@ export default function Notes() {
 
  return (
   <>
-    <LayoutComponent metaTitle="Notes" metaDescription={"Ini adalah bagian Notes"}>
       <Box padding="5">
         <Flex justifyContent="end" onClick={() => router.push('/notes/add')}>
           <Button colorScheme="blue">Add Notes</Button>
@@ -106,7 +104,6 @@ export default function Notes() {
           </Grid>
         </Flex>
       </Box>
-    </LayoutComponent>
   </>
  );
 }
