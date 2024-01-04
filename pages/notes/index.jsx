@@ -14,9 +14,9 @@ export default function Notes() {
   const { data, isError, isLoading } = useSWR('http://localhost:3000/api/notes/', fetcher, {revalidateOnFocus: true})
 
   // const {data, isLoading, isError} = useQueries({prefixUrl : 'https://paace-f178cafcae7b.nevacloud.io/api/notes'})
-  console.log('Data useQueries',data)
-  console.log('isLoading',isLoading)
-  console.log('isError',isError)
+  // console.log('Data useQueries',data)
+  // console.log('isLoading',isLoading)
+  // console.log('isError',isError)
   const router = useRouter()
 
   const [notes, setNotes] = useState()
@@ -108,9 +108,21 @@ export default function Notes() {
  );
 }
 
-// export async function getStaticProps() {
-//   const res = await fetch('https://paace-f178cafcae7b.nevacloud.io/api/notes')
-//   const notes = await res.json()
-//   return { props: { notes }, revalidate: 10 }
-// }
-
+export async function getServerSideProps() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`);
+    const data = await res.json();
+    return {
+      props: {
+        data,
+      },
+    };
+  } catch (error) {
+    return {
+      props: {
+        data: null,
+      },
+    };
+  }
+  
+}

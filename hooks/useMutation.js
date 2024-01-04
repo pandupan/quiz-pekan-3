@@ -1,4 +1,3 @@
-// hooks/useMutation.js
 import { useCallback, useState } from 'react';
 
 export const useMutation = () => {
