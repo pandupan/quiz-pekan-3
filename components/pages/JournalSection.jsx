@@ -33,32 +33,18 @@ export default function Notes() {
   const router = useRouter();
   const { mutate } = useMutation();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { data, isLoading } = useSWR(
-    "https://paace-f178cafcae7b.nevacloud.io/api/notes",
-    fetcher,
-    { revalidateOnFocus: true }
-  );
-
   const [notes, setNotes] = useState({
     title: "",
     description: "",
   });
 
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  const handleDelete = async (id) => {
-    try {
-      const response = await fetch(
-        `https://paace-f178cafcae7b.nevacloud.io/api/notes/delete/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      const result = await response.json();
-      if (result?.success) {
-        router.reload();
-      }
-    } catch (error) {}
-  };
+  const { data, isLoading } = useSWR(
+    "https://paace-f178cafcae7b.nevacloud.io/api/notes",
+    fetcher,
+    { revalidateOnFocus: true }
+  );
 
   const handleSubmit = async () => {
     try {
@@ -83,9 +69,11 @@ export default function Notes() {
       }
 
       const result = await response.json();
+      console.log(result)
       if (result?.success) {
-        onCloseModal();
+          onClose();
       }
+      
     } catch (error) {}
   };
 
@@ -99,6 +87,35 @@ export default function Notes() {
     }
     fetchingData();
   }, []);
+
+  const handleDelete = (id) => {
+    setNotes({ ...notes, idToDelete: id });
+    openDeleteModal();
+  };
+
+  const handleConfirmDelete = async (id) => {
+    try {
+      const response = await fetch(
+        `https://paace-f178cafcae7b.nevacloud.io/api/notes/delete/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const result = await response.json();
+      if (result?.success) {
+        router.reload();
+        closeDeleteModal();
+      }
+    } catch (error) {}
+  };
+
+  const openDeleteModal = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+  };
 
   const handleToggleForm = () => {
     onOpen();
@@ -124,7 +141,7 @@ export default function Notes() {
   }
 
   return (
-    <div className="text-black my-10 p-4 w-full h-auto">
+    <div id="journal" className="text-black my-10 p-4 w-full h-auto">
       <Box padding="5">
         <Flex justifyContent="end" className="my-8">
           <Button onClick={handleToggleForm} colorScheme="blue">
@@ -134,7 +151,9 @@ export default function Notes() {
         <Modal isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>{notes.mode === "edit" ? "Edit" : "Add"} Notes</ModalHeader>
+            <ModalHeader>
+              {notes.mode === "edit" ? "Edit" : "Add"} Notes
+            </ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <Text>Title</Text>
@@ -155,10 +174,36 @@ export default function Notes() {
             </ModalBody>
 
             <ModalFooter>
-              <Button colorScheme={notes.mode === "edit" ? "green" : "blue"} mr={3} onClick={handleSubmit}>
+              <Button
+                colorScheme={notes.mode === "edit" ? "green" : "blue"}
+                mr={3}
+                onClick={handleSubmit}
+              >
                 Submit
               </Button>
               <Button onClick={onClose}>Cancel</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Confirm Deletion</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              Are you sure you want to delete this note?
+            </ModalBody>
+
+            <ModalFooter>
+              <Button
+                colorScheme="red"
+                mr={3}
+                onClick={() => handleConfirmDelete(notes.idToDelete)}
+              >
+                Confirm Delete
+              </Button>
+              <Button onClick={closeDeleteModal}>Cancel</Button>
             </ModalFooter>
           </ModalContent>
         </Modal>
@@ -210,4 +255,23 @@ export default function Notes() {
       </Box>
     </div>
   );
+}
+
+export async function getServerSideProps() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`);
+    const data = await res.json();
+    return {
+      props: {
+        data,
+      },
+    };
+  } catch (error) {
+    return {
+      props: {
+        data: null,
+      },
+    };
+  }
+  
 }
